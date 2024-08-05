@@ -3,7 +3,9 @@ import { ProductRepository } from 'src/domain/repositories/product.repository';
 import { ProductEntity } from '../entities/product.entity';
 import { Repository } from 'typeorm';
 import { ProductModel } from 'src/domain/models/product.model';
+import { Injectable } from '@nestjs/common';
 
+@Injectable()
 export class ProductRepositoryImpl implements ProductRepository {
   constructor(
     @InjectRepository(ProductEntity)
