@@ -17,4 +17,6 @@ import environment from './config/environment';
     UseCasesProxyModule,
   ],
 })
-export class AppModule {}
+export class AppModule {
+  constructor() {}
+}
