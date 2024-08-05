@@ -1,4 +1,4 @@
-import { Controller, Get, Inject } from '@nestjs/common';
+import { Controller, Get, Inject, Param } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { UseCaseProxy } from 'src/infrastructure/use-cases-proxy/use-case-proxy';
 import { UseCasesProxyModule } from 'src/infrastructure/use-cases-proxy/use-cases-proxy.module';
@@ -12,8 +12,11 @@ export class ProductController {
     private readonly getAllProductsUseCase: UseCaseProxy<GetAllProductsUseCase>,
   ) {}
 
-  @Get()
-  async getAllProducts() {
-    return await this.getAllProductsUseCase.getInstance().execute();
+  @Get(':page/:limit')
+  async getAllProducts(
+    @Param('page') page: number,
+    @Param('limit') limit: number,
+  ) {
+    return await this.getAllProductsUseCase.getInstance().execute(page, limit);
   }
 }

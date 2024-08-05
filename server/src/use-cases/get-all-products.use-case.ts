@@ -4,7 +4,7 @@ import { ProductRepository } from 'src/domain/repositories/product.repository';
 export class GetAllProductsUseCase {
   constructor(private readonly productRepository: ProductRepository) {}
 
-  async execute(): Promise<ProductModel[]> {
-    return await this.productRepository.findAll();
+  async execute(page: number, limit: number): Promise<ProductModel[]> {
+    return await this.productRepository.findAllPageable(page, limit);
   }
 }

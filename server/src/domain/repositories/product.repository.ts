@@ -1,5 +1,5 @@
 import { ProductModel } from '../models/product.model';
 
 export interface ProductRepository {
-  findAll(): Promise<ProductModel[]>;
+  findAllPageable(page: number, limit: number): Promise<ProductModel[]>;
 }

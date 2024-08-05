@@ -1,17 +1,22 @@
 import { InjectRepository } from '@nestjs/typeorm';
 import { ProductRepository } from 'src/domain/repositories/product.repository';
-import { Product } from '../entities/product.entity';
+import { ProductEntity } from '../entities/product.entity';
 import { Repository } from 'typeorm';
 import { ProductModel } from 'src/domain/models/product.model';
 
 export class ProductRepositoryImpl implements ProductRepository {
   constructor(
-    @InjectRepository(Product)
-    private readonly productRespository: Repository<Product>,
+    @InjectRepository(ProductEntity)
+    private readonly productRespository: Repository<ProductEntity>,
   ) {}
 
-  async findAll(): Promise<ProductModel[]> {
-    const products = await this.productRespository.find();
+  async findAllPageable(page: number, limit: number): Promise<ProductModel[]> {
+    const offset = (page - 1) * limit;
+
+    const products = await this.productRespository.find({
+      skip: offset < 0 ? 0 : offset,
+      take: limit < 0 ? 0 : limit,
+    });
 
     return products.map(
       (product) =>
