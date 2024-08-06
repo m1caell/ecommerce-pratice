@@ -54,25 +54,15 @@ export class CartRepositoryImpl implements CartRepository {
     productCartEntity.cart = cartEntity;
     productCartEntity.quantity = quantity;
 
-    const cartModel = new CartModel(
-      cartEntity?.id,
-      cartEntity?.products,
-      cartEntity?.valueTotal,
-    );
-
-    const productModel = new ProductModel(
-      productEntity?.id,
-      productEntity?.name,
-      productEntity?.value,
-      productEntity?.url,
-    );
-
     await this.productCartRepository.save(productCartEntity);
+    await this.cartRepository.update(cartEntity.id, {
+      valueTotal:
+        Number(cartEntity.valueTotal) + Number(productEntity.value) * quantity,
+    });
 
     return new ProductCartModel(
       productCartEntity.id,
-      cartModel,
-      productModel,
+      productEntity,
       productCartEntity.quantity,
     );
   }
@@ -107,11 +97,31 @@ export class CartRepositoryImpl implements CartRepository {
     const cartEntity = await this.cartRepository.findOneByOrFail({
       id: cartId,
     });
+    const products: ProductCartModel[] = [];
 
-    return new CartModel(
-      cartEntity.id,
-      cartEntity.products,
-      cartEntity.valueTotal,
-    );
+    const productOnCart = await this.productCartRepository.find({
+      where: { cart: cartEntity },
+    });
+
+    for (const product of productOnCart) {
+      const findedProduct = await this.productRepository.findOneByOrFail({
+        id: product.id,
+      });
+
+      const productModel = new ProductCartModel(
+        product.id,
+        new ProductModel(
+          findedProduct.id,
+          findedProduct.name,
+          findedProduct.value,
+          findedProduct.url,
+        ),
+        product.quantity,
+      );
+
+      products.push(productModel);
+    }
+
+    return new CartModel(cartEntity.id, products, cartEntity.valueTotal);
   }
 }

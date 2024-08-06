@@ -2,7 +2,7 @@ import { ProductCartModel } from './product-cart.model';
 
 export class CartModel {
   id: number;
-  products: ProductCartModel[];
+  products: Omit<ProductCartModel, 'cart'>[];
   valueTotal: number;
 
   constructor(id?: number, products?: ProductCartModel[], valueTotal?: number) {

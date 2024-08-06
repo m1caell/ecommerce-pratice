@@ -1,12 +1,13 @@
-import { Body, Controller, Inject, Post } from '@nestjs/common';
+import { Body, Controller, Get, Inject, Param, Post } from '@nestjs/common';
 import { UseCasesProxyModule } from 'src/infrastructure/use-cases-proxy/use-cases-proxy.module';
-import { GenerateCartUseCase } from 'src/use-cases/generate-cart-use-case';
+import { GenerateCartUseCase } from 'src/use-cases/generate-cart.use-case';
 import { UseCaseProxy } from '../../use-cases-proxy/use-case-proxy';
 import { CartModel } from 'src/domain/models/cart.model';
-import { ApiBody, ApiTags } from '@nestjs/swagger';
+import { ApiTags } from '@nestjs/swagger';
 import { ProductCartModel } from 'src/domain/models/product-cart.model';
 import { AddProductToCartPayloadDto } from './dtos/add-product-to-cart-payload.dto';
-import { AddProductToCartUseCase } from 'src/use-cases/add-product-to-cart-use-case';
+import { AddProductToCartUseCase } from 'src/use-cases/add-product-to-cart.use-case';
+import { GetCartUseCase } from 'src/use-cases/get-cart.use-case';
 
 @ApiTags('Cart')
 @Controller('cart')
@@ -17,6 +18,9 @@ export class CartController {
 
     @Inject(UseCasesProxyModule.ADD_PRODUCT_TO_CART_USE_CASE)
     private readonly addProductToCartUseCase: UseCaseProxy<AddProductToCartUseCase>,
+
+    @Inject(UseCasesProxyModule.GET_CART_USE_CASE)
+    private readonly getCartUseCase: UseCaseProxy<GetCartUseCase>,
   ) {}
 
   @Post('generate')
@@ -36,5 +40,10 @@ export class CartController {
         addProductPayload.cartId,
         addProductPayload.quantity,
       );
+  }
+
+  @Get(':cartId')
+  async getCart(@Param('cartId') cartId: number): Promise<CartModel> {
+    return await this.getCartUseCase.getInstance().execute(cartId);
   }
 }
