@@ -68,8 +68,8 @@ export class CartRepositoryImpl implements CartRepository {
   }
 
   async removeProductFromCart(
-    productId: number,
     cartId: number,
+    productId: number,
   ): Promise<void> {
     const cartEntity = await this.cartRepository.findOneBy({ id: cartId });
     const productEntity = await this.productRepository.findOneBy({
@@ -84,7 +84,7 @@ export class CartRepositoryImpl implements CartRepository {
       throw new Error('Product not found');
     }
 
-    const deleteResult = await this.productCartRepository.softDelete({
+    const deleteResult = await this.productCartRepository.delete({
       id: productId,
     });
 
