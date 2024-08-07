@@ -6,17 +6,17 @@ import {
   Inject,
   Param,
   Post,
+  Res,
 } from '@nestjs/common';
 import { UseCasesProxyModule } from 'src/infrastructure/use-cases-proxy/use-cases-proxy.module';
 import { GenerateCartUseCase } from 'src/use-cases/generate-cart.use-case';
 import { UseCaseProxy } from '../../use-cases-proxy/use-case-proxy';
-import { CartModel } from 'src/domain/models/cart.model';
 import { ApiTags } from '@nestjs/swagger';
-import { ProductCartModel } from 'src/domain/models/product-cart.model';
 import { AddProductToCartPayloadDto } from './dtos/add-product-to-cart-payload.dto';
 import { AddProductToCartUseCase } from 'src/use-cases/add-product-to-cart.use-case';
 import { GetCartUseCase } from 'src/use-cases/get-cart.use-case';
 import { RemoveProductFromCartUseCase } from 'src/use-cases/remove-product-from-cart.use-case';
+import { Response } from 'express';
 
 @ApiTags('Cart')
 @Controller('cart')
@@ -36,7 +36,7 @@ export class CartController {
   ) {}
 
   @Post('generate')
-  async generateNewCart(): Promise<CartModel> {
+  async generateNewCart() {
     return await this.generateCartUseCase.getInstance().execute();
   }
 
@@ -44,7 +44,7 @@ export class CartController {
   async addProductToCart(
     @Body()
     addProductPayload: AddProductToCartPayloadDto,
-  ): Promise<ProductCartModel> {
+  ) {
     return await this.addProductToCartUseCase
       .getInstance()
       .execute(
@@ -55,17 +55,23 @@ export class CartController {
   }
 
   @Get(':cartId')
-  async getCart(@Param('cartId') cartId: number): Promise<CartModel> {
-    return await this.getCartUseCase.getInstance().execute(+cartId);
+  async getCart(@Param('cartId') cartId: number, @Res() res: Response) {
+    const cart = await this.getCartUseCase.getInstance().execute(cartId);
+
+    if (!cart) {
+      res.status(404).send('Cart not found');
+    }
+
+    res.status(200).send(cart);
   }
 
-  @Delete(':cartId/product/:productId')
+  @Delete(':cartId/product/:productCartId')
   async deleteProductFromCart(
     @Param('cartId') cartId: number,
-    @Param('productId') productId: number,
+    @Param('productCartId') productCartId: number,
   ) {
-    await this.removeProductFromCartUseCase
+    return await this.removeProductFromCartUseCase
       .getInstance()
-      .execute(+cartId, +productId);
+      .execute(cartId, productCartId);
   }
 }

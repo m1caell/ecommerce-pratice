@@ -6,9 +6,9 @@ export class CartEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @OneToMany(() => ProductCartEntity, (product) => product.id)
+  @OneToMany(() => ProductCartEntity, (productCart) => productCart.cart)
   products: ProductCartEntity[];
 
-  @Column({ type: 'numeric', precision: 12, scale: 2 })
+  @Column({ type: 'decimal' })
   valueTotal: number;
 }

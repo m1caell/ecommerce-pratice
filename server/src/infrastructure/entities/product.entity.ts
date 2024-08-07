@@ -1,4 +1,5 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
+import { ProductCartEntity } from './product-cart.entity';
 
 @Entity('product')
 export class ProductEntity {
@@ -13,4 +14,7 @@ export class ProductEntity {
 
   @Column({ type: 'numeric', precision: 12, scale: 2 })
   value: number;
+
+  @OneToMany(() => ProductCartEntity, (productCart) => productCart.cart)
+  productsCart: ProductCartEntity[];
 }

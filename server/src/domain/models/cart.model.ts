@@ -5,9 +5,9 @@ export class CartModel {
   products: ProductCartModel[];
   valueTotal: number;
 
-  constructor(id?: number, products?: ProductCartModel[], valueTotal?: number) {
-    this.id = id || 0;
-    this.products = products || [];
-    this.valueTotal = valueTotal || 0;
+  constructor(id: number, products: ProductCartModel[], valueTotal: number) {
+    this.id = id;
+    this.products = products;
+    this.valueTotal = valueTotal;
   }
 }

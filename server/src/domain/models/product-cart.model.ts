@@ -1,13 +1,24 @@
-import { ProductModel } from './product.model';
-
 export class ProductCartModel {
-  id: number;
-  product: ProductModel;
+  productCartId: number;
   quantity: number;
+  productId: number;
+  name: string;
+  url: string;
+  value: number;
 
-  constructor(id: number, product: ProductModel, quantity: number) {
-    this.id = id;
-    this.product = product;
+  constructor(
+    productCartId: number,
+    quantity: number,
+    value: number,
+    productId: number,
+    name: string,
+    url: string,
+  ) {
+    this.productCartId = productCartId;
     this.quantity = quantity;
+    this.value = value;
+    this.productId = productId;
+    this.name = name;
+    this.url = url;
   }
 }

@@ -7,12 +7,18 @@ export class ProductCartEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => ProductEntity, (product) => product.id)
-  product: ProductEntity;
-
-  @ManyToOne(() => CartEntity, (cart) => cart.id)
-  cart: CartEntity;
-
   @Column()
   quantity: number;
+
+  @Column()
+  productId: number;
+
+  @Column()
+  cartId: number;
+
+  @ManyToOne(() => ProductEntity, (product) => product.productsCart)
+  product: ProductEntity;
+
+  @ManyToOne(() => CartEntity, (cart) => cart.products)
+  cart: CartEntity;
 }

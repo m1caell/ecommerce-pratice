@@ -1,5 +1,4 @@
 import { CartModel } from '../models/cart.model';
-import { ProductCartModel } from '../models/product-cart.model';
 
 export interface CartRepository {
   generateNewCart(): Promise<CartModel>;
@@ -7,7 +6,7 @@ export interface CartRepository {
     productId: number,
     cartId: number,
     quantity: number,
-  ): Promise<ProductCartModel>;
-  removeProductFromCart(productId: number, cartId: number): Promise<void>;
-  getCart(cartId: number): Promise<CartModel>;
+  ): Promise<CartModel>;
+  removeProductFromCart(productId: number, cartId: number): Promise<CartModel>;
+  getCart(cartId: number): Promise<CartModel | null>;
 }

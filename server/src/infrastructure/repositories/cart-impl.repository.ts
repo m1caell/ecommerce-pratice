@@ -7,7 +7,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { ProductCartEntity } from '../entities/product-cart.entity';
 import { ProductEntity } from '../entities/product.entity';
 import { ProductCartModel } from 'src/domain/models/product-cart.model';
-import { ProductModel } from 'src/domain/models/product.model';
 
 @Injectable()
 export class CartRepositoryImpl implements CartRepository {
@@ -35,93 +34,122 @@ export class CartRepositoryImpl implements CartRepository {
     productId: number,
     cartId: number,
     quantity: number,
-  ): Promise<ProductCartModel> {
-    const cartEntity = await this.cartRepository.findOneBy({ id: cartId });
-    const productEntity = await this.productRepository.findOneBy({
-      id: productId,
+  ): Promise<CartModel> {
+    const cartEntity = await this.cartRepository.findOne({
+      where: { id: cartId },
+      relations: { products: true },
     });
 
     if (!cartEntity) {
       throw new Error('Cart not found');
     }
 
+    const productEntity = await this.productRepository.findOneBy({
+      id: productId,
+    });
+
     if (!productEntity) {
       throw new Error('Product not found');
     }
 
-    const productCartEntity = this.productCartRepository.create();
-    productCartEntity.product = productEntity;
-    productCartEntity.cart = cartEntity;
-    productCartEntity.quantity = quantity;
+    const newProductCart = this.productCartRepository.create();
+    newProductCart.product = productEntity;
+    newProductCart.cart = cartEntity;
+    newProductCart.quantity = quantity;
 
-    await this.productCartRepository.save(productCartEntity);
-    await this.cartRepository.update(cartEntity.id, {
-      valueTotal:
-        Number(cartEntity.valueTotal) + Number(productEntity.value) * quantity,
-    });
+    const product = await this.productCartRepository.save(newProductCart);
 
-    return new ProductCartModel(
-      productCartEntity.id,
-      productEntity,
-      productCartEntity.quantity,
-    );
+    cartEntity.products.push(product);
+
+    cartEntity.valueTotal =
+      Number(cartEntity.valueTotal) + Number(productEntity.value) * quantity;
+
+    const cartSaved = await this.cartRepository.save(cartEntity);
+
+    const productsModel: ProductCartModel[] =
+      await this.getFilledProductsCardModel(cartEntity.products);
+
+    return new CartModel(cartSaved.id, productsModel, cartSaved.valueTotal);
   }
 
   async removeProductFromCart(
     cartId: number,
-    productId: number,
-  ): Promise<void> {
-    const cartEntity = await this.cartRepository.findOneBy({ id: cartId });
-    const productEntity = await this.productRepository.findOneBy({
-      id: productId,
+    productCartId: number,
+  ): Promise<CartModel> {
+    const cartEntity = await this.cartRepository.findOne({
+      where: { id: cartId },
+      relations: { products: true },
+    });
+    const productCartEntity = await this.productCartRepository.findOne({
+      where: { id: productCartId },
+      relations: { product: true },
     });
 
     if (!cartEntity) {
       throw new Error('Cart not found');
     }
 
-    if (!productEntity) {
+    if (!productCartEntity) {
       throw new Error('Product not found');
     }
 
+    cartEntity.valueTotal =
+      Number(cartEntity.valueTotal) -
+      Number(productCartEntity.product.value) * productCartEntity.quantity;
+
     const deleteResult = await this.productCartRepository.delete({
-      id: productId,
+      id: productCartId,
     });
 
     if (deleteResult.affected === 0) {
       throw new Error('Any change happened.');
     }
+
+    const cartUpdated = await this.cartRepository.save(cartEntity);
+    const productsDto = await this.getFilledProductsCardModel(
+      cartEntity.products,
+    );
+
+    return new CartModel(cartUpdated.id, productsDto, cartUpdated.valueTotal);
   }
 
-  async getCart(cartId: number): Promise<CartModel> {
-    const cartEntity = await this.cartRepository.findOneByOrFail({
-      id: cartId,
-    });
-    const products: ProductCartModel[] = [];
-
-    const productOnCart = await this.productCartRepository.find({
-      where: { cart: cartEntity },
+  async getCart(cartId: number): Promise<CartModel | null> {
+    const cartEntity = await this.cartRepository.findOne({
+      relations: { products: true },
+      where: { id: cartId },
     });
 
-    for (const product of productOnCart) {
-      const findedProduct = await this.productRepository.findOneByOrFail({
-        id: product.id,
-      });
-
-      const productModel = new ProductCartModel(
-        product.id,
-        new ProductModel(
-          findedProduct.id,
-          findedProduct.name,
-          findedProduct.value,
-          findedProduct.url,
-        ),
-        product.quantity,
-      );
-
-      products.push(productModel);
+    if (!cartEntity) {
+      return null;
     }
 
-    return new CartModel(cartEntity.id, products, cartEntity.valueTotal);
+    const productsDto = await this.getFilledProductsCardModel(
+      cartEntity.products,
+    );
+
+    return new CartModel(cartEntity?.id, productsDto, cartEntity?.valueTotal);
+  }
+
+  async getFilledProductsCardModel(products: ProductCartEntity[]) {
+    const productsModel: ProductCartModel[] = [];
+
+    for await (const productCart of products) {
+      const productEntity = await this.productRepository.findOneOrFail({
+        where: { id: productCart.productId },
+      });
+
+      productsModel.push(
+        new ProductCartModel(
+          productCart.id,
+          productCart.quantity,
+          productEntity?.value,
+          productEntity?.id,
+          productEntity?.name,
+          productEntity?.url,
+        ),
+      );
+    }
+
+    return productsModel;
   }
 }

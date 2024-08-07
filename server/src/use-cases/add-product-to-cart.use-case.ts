@@ -1,4 +1,4 @@
-import { ProductCartModel } from 'src/domain/models/product-cart.model';
+import { CartModel } from 'src/domain/models/cart.model';
 import { CartRepository } from 'src/domain/repositories/cart.repository';
 
 export class AddProductToCartUseCase {
@@ -8,7 +8,7 @@ export class AddProductToCartUseCase {
     productId: number,
     cartId: number,
     quantity: number,
-  ): Promise<ProductCartModel> {
+  ): Promise<CartModel> {
     return this.cartRepository.addProductToCart(productId, cartId, quantity);
   }
 }
