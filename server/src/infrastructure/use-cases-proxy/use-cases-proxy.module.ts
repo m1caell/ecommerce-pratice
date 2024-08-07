@@ -8,6 +8,7 @@ import { GenerateCartUseCase } from 'src/use-cases/generate-cart.use-case';
 import { AddProductToCartUseCase } from 'src/use-cases/add-product-to-cart.use-case';
 import { GetCartUseCase } from 'src/use-cases/get-cart.use-case';
 import { RemoveProductFromCartUseCase } from 'src/use-cases/remove-product-from-cart.use-case';
+import { SearchProductsUseCase } from 'src/use-cases/search-products.use-case';
 
 @Module({
   imports: [RepositoriesModule],
@@ -18,6 +19,7 @@ export class UseCasesProxyModule {
   static ADD_PRODUCT_TO_CART_USE_CASE = 'AddProductToCartUseCase';
   static GET_CART_USE_CASE = 'GetCartUseCase';
   static REMOVE_PRODUCT_FROM_CART_USE_CASE = 'RemoveProductFromCartUseCase';
+  static SEARCH_PRODUCTS_USE_CASE = 'SearchProductsUseCase';
 
   static register(): DynamicModule {
     return {
@@ -64,6 +66,15 @@ export class UseCasesProxyModule {
             );
           },
         },
+        {
+          inject: [ProductRepositoryImpl],
+          provide: UseCasesProxyModule.SEARCH_PRODUCTS_USE_CASE,
+          useFactory: (productRepository: ProductRepositoryImpl) => {
+            return new UseCaseProxy(
+              new SearchProductsUseCase(productRepository),
+            );
+          },
+        },
       ],
       exports: [
         UseCasesProxyModule.GET_ALL_PRODUCTS_USE_CASE,
@@ -71,6 +82,7 @@ export class UseCasesProxyModule {
         UseCasesProxyModule.ADD_PRODUCT_TO_CART_USE_CASE,
         UseCasesProxyModule.GET_CART_USE_CASE,
         UseCasesProxyModule.REMOVE_PRODUCT_FROM_CART_USE_CASE,
+        UseCasesProxyModule.SEARCH_PRODUCTS_USE_CASE,
       ],
     };
   }

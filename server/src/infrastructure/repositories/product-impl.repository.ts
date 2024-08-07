@@ -25,4 +25,31 @@ export class ProductRepositoryImpl implements ProductRepository {
         new ProductModel(product.id, product.name, product.value, product.url),
     );
   }
+
+  async searchPageable(
+    query: string,
+    page: number,
+    limit: number,
+  ): Promise<ProductModel[]> {
+    const offset = (page - 1) * limit;
+
+    // create a query builder to get products that query is like the name of product
+    const products = await this.productRespository
+      .createQueryBuilder('product')
+      .where('product.name like :query', { query: `%${query}%` })
+      .skip(offset < 0 ? 0 : offset)
+      .take(limit < 0 ? 0 : limit)
+      .getMany();
+
+    // const products = await this.productRespository.find({
+    //   skip: offset < 0 ? 0 : offset,
+    //   take: limit < 0 ? 0 : limit,
+    //   where: { name: query },
+    // });
+
+    return products.map(
+      (product) =>
+        new ProductModel(product.id, product.name, product.value, product.url),
+    );
+  }
 }
